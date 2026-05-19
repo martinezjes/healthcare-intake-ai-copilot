@@ -1,11 +1,11 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List
 
 
 class IntakeRequest(BaseModel):
     patient_id: str
     intake_text: str
-    source: str = "web_form"
+    source: str
 
 
 class IntakeAnalysis(BaseModel):
@@ -16,3 +16,8 @@ class IntakeAnalysis(BaseModel):
     escalation_required: bool
     confidence_score: float
     follow_up_message: str
+
+
+class IntakeResponse(BaseModel):
+    patient_id: str
+    analysis: IntakeAnalysis

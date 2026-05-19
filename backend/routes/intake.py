@@ -3,18 +3,33 @@ from fastapi import APIRouter
 from backend.models.intake_models import IntakeRequest
 from backend.services.ai_service import generate_intake_analysis
 
+from backend.models.intake_models import (
+    IntakeRequest,
+    IntakeResponse,
+    IntakeAnalysis
+)
+
 router = APIRouter(
     prefix="/intake",
     tags=["Intake"]
 )
 
 
-@router.post("/analyze")
+@router.post(
+    "/analyze",
+    response_model=IntakeResponse
+)
 def analyze_intake(request: IntakeRequest):
 
-    ai_result = generate_intake_analysis(request.intake_text)
+    ai_response = generate_intake_analysis(
+        request.intake_text
+    )
 
-    return {
-        "patient_id": request.patient_id,
-        "analysis": ai_result
-    }
+    validated_analysis = IntakeAnalysis(
+        **ai_response
+    )
+
+    return IntakeResponse(
+        patient_id=request.patient_id,
+        analysis=validated_analysis
+    )

@@ -1,14 +1,14 @@
 from pathlib import Path
 
 
-def load_prompt(prompt_name: str) -> str:
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
-    prompt_path = (
-        Path(__file__)
-        .parent.parent
-        / "prompts"
-        / prompt_name
-    )
+PROMPTS_DIR = PROJECT_ROOT / "prompts"
+
+
+def load_prompt(filename: str) -> str:
+
+    prompt_path = PROMPTS_DIR / filename
 
     with open(prompt_path, "r", encoding="utf-8") as file:
         return file.read()
