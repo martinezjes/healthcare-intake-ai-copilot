@@ -1,8 +1,20 @@
+import json
+
+from backend.utils.prompt_loader import load_prompt
+
+
 def generate_intake_analysis(intake_text: str):
-    """
-    Mock AI service for development.
-    Simulates LLM output without external API dependency.
-    """
+
+    prompt_template = load_prompt(
+        "intake_extraction_prompt.txt"
+    )
+
+    final_prompt = prompt_template.format(
+        intake_text=intake_text
+    )
+
+    # MOCK structured AI response
+    # Later replaced with OpenAI call
 
     text = intake_text.lower()
 
@@ -17,39 +29,29 @@ def generate_intake_analysis(intake_text: str):
     if "shortness of breath" in text:
         symptoms.append("shortness of breath")
 
-    # Default logic
     urgency = "low"
     escalation = False
     routing = "Primary Care Review"
-    confidence = 0.85
+    confidence = 0.82
 
-    # Risk logic (simulated clinical heuristics)
     if "chest pain" in symptoms:
         urgency = "high"
         escalation = True
         routing = "Emergency Department Review"
-        confidence = 0.93
+        confidence = 0.95
 
-    elif "shortness of breath" in symptoms:
-        urgency = "medium"
-        routing = "Urgent Care Review"
-        confidence = 0.88
-
-    summary = (
-        "Patient presents with reported symptoms requiring clinical review. "
-        "No AI model was used (mock mode active)."
-    )
-
-    follow_up = (
-        "Your intake has been received and is being reviewed by our clinical team."
-    )
-
-    return {
-        "summary": summary,
+    mock_response = {
+        "summary": (
+            "Patient intake processed successfully."
+        ),
         "extracted_symptoms": symptoms,
         "urgency_level": urgency,
         "routing_recommendation": routing,
         "escalation_required": escalation,
         "confidence_score": confidence,
-        "follow_up_message": follow_up
+        "follow_up_message": (
+            "Your intake has been received."
+        )
     }
+
+    return mock_response
