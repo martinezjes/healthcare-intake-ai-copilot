@@ -1,57 +1,71 @@
-import json
-
 from backend.utils.prompt_loader import load_prompt
+from backend.utils.logger import logger
 
 
 def generate_intake_analysis(intake_text: str):
 
-    prompt_template = load_prompt(
-        "intake_extraction_prompt.txt"
-    )
+    try:
 
-    final_prompt = prompt_template.format(
-        intake_text=intake_text
-    )
-
-    # MOCK structured AI response
-    # Later replaced with OpenAI call
-
-    text = intake_text.lower()
-
-    symptoms = []
-
-    if "chest pain" in text:
-        symptoms.append("chest pain")
-
-    if "dizziness" in text:
-        symptoms.append("dizziness")
-
-    if "shortness of breath" in text:
-        symptoms.append("shortness of breath")
-
-    urgency = "low"
-    escalation = False
-    routing = "Primary Care Review"
-    confidence = 0.82
-
-    if "chest pain" in symptoms:
-        urgency = "high"
-        escalation = True
-        routing = "Emergency Department Review"
-        confidence = 0.95
-
-    mock_response = {
-        "summary": (
-            "Patient intake processed successfully."
-        ),
-        "extracted_symptoms": symptoms,
-        "urgency_level": urgency,
-        "routing_recommendation": routing,
-        "escalation_required": escalation,
-        "confidence_score": confidence,
-        "follow_up_message": (
-            "Your intake has been received."
+        prompt_template = load_prompt(
+            "intake_extraction_prompt.txt"
         )
-    }
 
-    return mock_response
+        confidence = 0.91
+
+        escalation_required = (
+            confidence < 0.75
+            or "chest pain" in intake_text.lower()
+        )
+
+        logger.info(
+            f"Processing intake: {intake_text}"
+        )
+
+        mock_response = {
+            "summary": (
+                "Patient reports chest pain and "
+                "shortness of breath."
+            ),
+            "extracted_symptoms": [
+                "chest pain",
+                "shortness of breath"
+            ],
+            "urgency_level": "high",
+            "routing_recommendation": (
+                "Emergency Department"
+            ),
+            "escalation_required": escalation_required,
+            "confidence_score": confidence,
+            "follow_up_message": (
+                "Your intake has been flagged "
+                "for expedited clinical review."
+            )
+        }
+
+        logger.info(
+            f"AI analysis completed successfully."
+        )
+
+        return mock_response
+
+    except Exception as error:
+
+        logger.error(
+            f"AI processing failed: {str(error)}"
+        )
+
+        return {
+            "summary": (
+                "Unable to generate summary."
+            ),
+            "extracted_symptoms": [],
+            "urgency_level": "unknown",
+            "routing_recommendation": (
+                "Manual Review Required"
+            ),
+            "escalation_required": True,
+            "confidence_score": 0.0,
+            "follow_up_message": (
+                "Your intake requires manual review."
+            )
+        }
