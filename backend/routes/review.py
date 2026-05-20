@@ -1,14 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from backend.utils.api_response import api_response
 
 from backend.database import SessionLocal
 from backend.services.deps import get_current_user
 from backend.services.rbac import require_admin
 from backend.utils.response import success_response
-from backend.services.review_service import (
-    get_all_logs,
-    get_logs_by_patient
-)
+from backend.services.review_service import get_logs_by_patient
+from backend.models.audit_log import AuditLog
 
 router = APIRouter(
     prefix="/review",
@@ -24,31 +23,41 @@ def get_db():
         db.close()
 
 
-# ADMIN ONLY: All logs with pagination + filtering
+# =========================
+# ADMIN: All logs (paginated + optional urgency filter)
+# =========================
 @router.get("/logs")
-def fetch_patient_logs(
+def fetch_all_logs(
     limit: int = 10,
     offset: int = 0,
     urgency: str | None = Query(None),
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(require_admin)  # enforce admin access
 ):
-    query = db.query(...)  # your existing query logic here
+    query = db.query(AuditLog)
 
+    # optional filter
     if urgency:
-        query = query.filter(...)
+        query = query.filter(AuditLog.urgency_level == urgency)
 
     logs = query.limit(limit).offset(offset).all()
 
-    return {
+    return api_response(
+    data={
+        "logs": logs
+    },
+    message="Logs retrieved successfully",
+    meta={
         "limit": limit,
         "offset": offset,
-        "urgency_filter": urgency,
-        "data": logs
+        "urgency_filter": urgency
     }
+)
 
 
-# AUTHENTICATED: Patient logs with pagination
+# =========================
+# USER: Logs for specific patient
+# =========================
 @router.get("/logs/{patient_id}")
 def fetch_patient_logs(
     patient_id: str,
@@ -65,14 +74,13 @@ def fetch_patient_logs(
     )
 
     return success_response(
-    data={
-        "count": len(logs),
-        "logs": logs
-    },
-    meta={
-        "limit": limit,
-        "offset": offset,
-        "urgency_filter": urgency
-    },
-    message="Logs retrieved successfully"
-)
+        data={
+            "count": len(logs),
+            "logs": logs
+        },
+        meta={
+            "limit": limit,
+            "offset": offset
+        },
+        message="Logs retrieved successfully"
+    )
