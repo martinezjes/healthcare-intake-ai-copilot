@@ -5,6 +5,7 @@ from backend.database import SessionLocal
 from backend.models.user import User
 from backend.schemas.user import UserCreate
 from backend.services.security import hash_password
+from fastapi.security import OAuth2PasswordRequestForm
 
 from backend.services.security import hash_password, verify_password
 from backend.services.jwt import create_access_token
@@ -47,17 +48,28 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     }
 
 @router.post("/login")
-def login(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    db_user = db.query(User).filter(
+        User.email == form_data.username
+    ).first()
 
     if not db_user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    if not verify_password(user.password, db_user.hashed_password):
+    if not verify_password(
+        form_data.password,
+        db_user.hashed_password
+    ):
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
     token = create_access_token(
-        data={"user_id": db_user.id, "email": db_user.email}
+        data={
+            "user_id": db_user.id,
+            "email": db_user.email
+        }
     )
 
     return {

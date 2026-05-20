@@ -1,16 +1,20 @@
-from fastapi import APIRouter
-
-from backend.models.intake_models import IntakeRequest
-from backend.services.ai_service import generate_intake_analysis
-from backend.services.audit_service import (
-    save_audit_log
-)
+from fastapi import APIRouter, Depends
 
 from backend.models.intake_models import (
     IntakeRequest,
     IntakeResponse,
     IntakeAnalysis
 )
+
+from backend.services.ai_service import (
+    generate_intake_analysis
+)
+
+from backend.services.audit_service import (
+    save_audit_log
+)
+
+from backend.services.deps import get_current_user
 
 router = APIRouter(
     prefix="/intake",
@@ -22,8 +26,10 @@ router = APIRouter(
     "/analyze",
     response_model=IntakeResponse
 )
-def analyze_intake(request: IntakeRequest):
-
+def analyze_intake(
+    request: IntakeRequest,
+    current_user=Depends(get_current_user)
+):
     ai_response = generate_intake_analysis(
         request.intake_text
     )
@@ -33,9 +39,9 @@ def analyze_intake(request: IntakeRequest):
     )
 
     save_audit_log(
-    patient_id=request.patient_id,
-    intake_text=request.intake_text,
-    analysis=validated_analysis
+        patient_id=request.patient_id,
+        intake_text=request.intake_text,
+        analysis=validated_analysis
     )
 
     return IntakeResponse(
