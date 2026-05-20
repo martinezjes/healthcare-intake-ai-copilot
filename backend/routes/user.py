@@ -10,10 +10,13 @@ router = APIRouter(prefix="/users", tags=["Users"])
 def get_me(current_user=Depends(get_current_user)):
     return api_response(
         data={
-            "id": current_user.id,
-            "email": current_user.email,
-            "is_admin": current_user.is_admin
+            "count": len(logs),
+            "logs": logs
         },
-        message="User profile retrieved successfully"
+        message="Logs retrieved successfully",
+        meta={
+            "limit": limit,
+            "offset": offset
+        }
     )
 
