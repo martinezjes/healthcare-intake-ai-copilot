@@ -1,7 +1,7 @@
 from backend.database import engine
 from backend.models.audit_log import AuditLog
 from backend.database import Base
-
+from backend.models.user import User
 
 def initialize_database():
     Base.metadata.create_all(bind=engine)
