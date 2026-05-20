@@ -25,7 +25,7 @@ class AuditLog(Base):
     escalation_required = Column(Boolean)
 
     # NEW — HUMAN REVIEW WORKFLOW
-    review_status = Column(String, default="PENDING")
+    review_status = Column(String)
     reviewer_notes = Column(String, nullable=True)
     edited_summary = Column(String, nullable=True)
 
